@@ -80,6 +80,11 @@ struct object_type {
 	std::vector<std::pair<std::string, any_type>> val;
 };
 
+// You can also use this type if you don't want to serialize a proper object;
+// maybe you just want to serialize a single value or an array.
+//
+// A ctor is provided to effectively "typecast" an object_type to this type;
+// it's recommended you make serializers take an any_type.
 struct any_type {
 	any_type() = delete;
 	template <BaseType T>
@@ -88,8 +93,12 @@ struct any_type {
 	template <HasSerializeFn T>
 	explicit any_type(const T &val) : val(val.serialize()) {}
 
+	explicit any_type(const object_type &val) : val(val) {}
+
 	template <Serializable T, size_t Len>
 	explicit any_type(const std::span<T, Len> &arr) : val(array_type(arr)) {}
+
+
 	std::variant<base_type, array_type, object_type> val;
 };
 
@@ -111,7 +120,6 @@ void object_type::append(const std::string_view &name, const std::span<T, Len> &
 	val.push_back(std::pair<std::string, any_type>(name, any_type(arr)));
 }
 
-
-std::optional<std::string> serializeJSON(const object_type &parent);
+std::optional<std::string> serializeJSON(const any_type &parent);
 
 }

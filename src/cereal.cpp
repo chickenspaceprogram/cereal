@@ -134,9 +134,18 @@ int serialize_any_type(std::string &outstr, const any_type &val) {
 
 }
 
-std::optional<std::string> serializeJSON(const object_type &type) {
+std::optional<std::string> serializeJSON(const object_type &parent) {
 	std::optional<std::string> out(std::string{});
-	if (serialize_object_type(*out, type) != 0) {
+	if (serialize_object_type(*out, parent) != 0) {
+		out.reset();
+	}
+	return out;
+}
+
+std::optional<std::string> serializeJSON(const any_type &parent) {
+	
+	std::optional<std::string> out(std::string{});
+	if (serialize_any_type(*out, parent) != 0) {
 		out.reset();
 	}
 	return out;

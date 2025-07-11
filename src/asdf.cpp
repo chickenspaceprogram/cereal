@@ -38,6 +38,5 @@ int main(void) {
 	obj.append("ints", std::span(ints));
 	obj.append("big", std::span(big));
 	cereal_append(obj, garbage);
-	std::string res = *cereal::serializeJSON(obj);
-	std::cout << res;
+	std::string res = *cereal::serializeJSON(cereal::any_type(obj));
 }
