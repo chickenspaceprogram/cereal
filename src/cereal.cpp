@@ -24,13 +24,21 @@ int serialize_base_type<std::string_view>(std::string &outstr, const std::string
 			outstr += "\\\"";
 		}
 		else if (chr <= 0x1f) {
-			outstr += "\\u00";
-			if (chr < 0x10) {
+			if (chr <= 0x09) {
+				outstr += "\\u000";
+				outstr += '0' + chr;
+			}
+			else if (chr < 0x10) {
+				outstr += "\\u000";
+				outstr += 'A' + chr - 0x0A;
+			}
+			else if (chr <= 0x19) {
+				outstr += "\\u001";
 				outstr += '0' + chr;
 			}
 			else {
-				outstr += '1';
-				outstr += '0' + chr - 0x10;
+				outstr += "\\u001";
+				outstr += 'A' + chr - 0x0A;
 			}
 		}
 		else {

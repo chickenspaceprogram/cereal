@@ -5,9 +5,11 @@
 struct smaller {
 	double sub_double = 123.456;
 	bool is_annoying = true;
+	std::string annoying{"this is a string with \n\nannoying\v\tchars\u1234"};
 	void serialize(cereal::Pattern &pat) const {
 		cereal_append(pat, sub_double);
 		cereal_append(pat, is_annoying);
+		cereal_append(pat, annoying);
 	}
 };
 
