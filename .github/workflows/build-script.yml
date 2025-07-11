@@ -21,7 +21,7 @@ jobs:
         build_type: [Release, Debug]
         c_compiler: [gcc, clang, cl]
         cpp_compiler: [g++, clang++, cl]
-        generator: ["\'Visual Studio 17 2022\'", Ninja]
+        generator: ["Visual Studio 17 2022", Ninja]
 
         exclude:
           - os: ubuntu-24.04
@@ -41,9 +41,9 @@ jobs:
           - c_compiler: cl
             cpp_compiler: clang++
           - c_compiler: gcc
-            generator: "\'Visual Studio 17 2022\'"
+            generator: "Visual Studio 17 2022"
           - c_compiler: clang
-            generator: "\'Visual Studio 17 2022\'"
+            generator: "Visual Studio 17 2022"
           - c_compiler: cl
             generator: Ninja
 
@@ -64,7 +64,7 @@ jobs:
         -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
         -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
         -DC_UTILS_TESTS=ON
-        -G${{ matrix.generator }}
+        '-G${{ matrix.generator }}'
         -S ${{ github.workspace }}
 
     - name: Build

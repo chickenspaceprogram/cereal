@@ -1,5 +1,6 @@
 #include <cereal/cereal.hpp>
 #include <iostream>
+#include <array>
 
 struct smaller {
 	double sub_double = 123.456;

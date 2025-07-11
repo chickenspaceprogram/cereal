@@ -2,7 +2,6 @@
 #include <sstream>
 #include <cmath>
 #include <iostream>
-#include <format>
 
 namespace cereal {
 
@@ -10,7 +9,7 @@ namespace {
 
 template <BaseType T>
 int serialize_base_type(std::string &outstr, const T &val) {
-	outstr += std::format("{}", val);
+	outstr += std::to_string(val);
 	return 0;
 }
 
@@ -65,7 +64,7 @@ int serialize_base_type<float>(std::string &outstr, const float &val) {
 	if (std::isnan(val) || std::isinf(val)) {
 		return -1;
 	}
-	outstr += std::format("{}", val);
+	outstr += std::to_string(val);
 	return 0;
 }
 
@@ -74,7 +73,7 @@ int serialize_base_type<double>(std::string &outstr, const double &val) {
 	if (std::isnan(val) || std::isinf(val)) {
 		return -1;
 	}
-	outstr += std::format("{}", val);
+	outstr += std::to_string(val);
 	return 0;
 }
 
