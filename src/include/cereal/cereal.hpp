@@ -23,18 +23,6 @@ using base_type = std::variant<
 #include "types.def" // stole this little trick from Clang, it's evil and i love it
 >;
 
-struct any_type;
-
-struct array_type {
-	std::vector<any_type> data;
-};
-struct object_type {
-	std::vector<std::pair<std::string, any_type>> data;
-};
-struct any_type {
-	std::variant<base_type, array_type, object_type> data;
-};
-
 using array_type = std::vector<Pattern>;
 using object_type = std::vector<std::pair<std::string, Pattern>>;
 
