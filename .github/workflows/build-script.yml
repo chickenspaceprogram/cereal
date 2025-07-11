@@ -21,7 +21,7 @@ jobs:
         build_type: [Release, Debug]
         c_compiler: [gcc, clang, cl]
         cpp_compiler: [g++, clang++, cl]
-        generator: ["Visual Studio 17 2022", Ninja]
+        generator: ["\'Visual Studio 17 2022\'", Ninja]
 
         exclude:
           - os: ubuntu-24.04
