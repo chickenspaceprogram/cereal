@@ -28,9 +28,11 @@ struct object_Object {
 
 int main(void) {
 	std::array<int, 5> ints = {11, 22, 33, 44, 55};
+	std::array<object_Object, 10000> big;
 	object_Object garbage;
 	cereal::Pattern pat;
 	pat.append("ints", std::span(ints));
+	pat.append("big", std::span(big));
 	cereal_append(pat, garbage);
 	std::string res = *serializeJSON(pat);
 	std::cout << res;

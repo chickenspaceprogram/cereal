@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <span>
+#include <cassert>
 #include <optional>
 #include <type_traits>
 
@@ -22,10 +23,23 @@ using base_type = std::variant<
 #include "types.def" // stole this little trick from Clang, it's evil and i love it
 >;
 
+struct any_type;
+
+struct array_type {
+	std::vector<any_type> data;
+};
+struct object_type {
+	std::vector<std::pair<std::string, any_type>> data;
+};
+struct any_type {
+	std::variant<base_type, array_type, object_type> data;
+};
+
 using array_type = std::vector<Pattern>;
 using object_type = std::vector<std::pair<std::string, Pattern>>;
 
 using any_type = std::variant<base_type, array_type, object_type>;
+
 
 template <typename T>
 constexpr bool is_base_type() {
@@ -81,11 +95,13 @@ class Pattern {
 
 	template <Serializable T>
 	void append(const std::string &str, const T &val) {
+		assert(data.index() == 2 && "Can only append to object types!");
 		std::get<2>(data).emplace_back(std::pair(str, Pattern(val)));
 	}
 
 	template <Serializable T, std::size_t SpanLen>
 	void append(const std::string &str, const std::span<T, SpanLen> &arr) {
+		assert(data.index() == 2 && "Can only append to object types!");
 		std::get<2>(data).emplace_back(std::pair(str, Pattern(arr)));
 	}
 
