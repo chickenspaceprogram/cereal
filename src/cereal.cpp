@@ -90,45 +90,53 @@ int serialize_base_type<double>(std::string &outstr, const double &val) {
 	return 0;
 }
 
-int serialize_complex_type(std::string &outstr, const any_type &val) {
-	size_t index = val.index();
-	if (index == 0) {
-		auto lambda =  [&outstr](const auto &asdf) -> int {return serialize_base_type(outstr, asdf);};
-		return std::visit(lambda, std::get<0>(val));
-	}
-	else if (index == 1) {
-		const auto &res = std::get<1>(val);
-		outstr += '[';
-		for (const auto &elem : res) {
-			if (serialize_complex_type(outstr, elem.get_tree()) != 0) {
-				return -1;
-			}
-			outstr += ',';
+int serialize_any_type(std::string &outstr, const any_type &arr);
+
+int serialize_array_type(std::string &outstr, const array_type &arr) {
+	outstr += '[';
+	for (const auto &elem : arr.val) {
+		if (serialize_any_type(outstr, elem) != 0) {
+			return -1;
 		}
-		outstr.back() = ']';
+		outstr += ',';
 	}
-	else {
-		const auto &res = std::get<2>(val);
-		outstr += '{';
-		for (const auto &[name, fields] : res) {
-			if (serialize_base_type(outstr, name) != 0)
-				return -1;
-			outstr += ':';
-			if (serialize_complex_type(outstr, fields.get_tree()) != 0)
-				return -1;
-			outstr += ',';
-		}
-		outstr.back() = '}';
-	}
+	outstr.back() = ']';
 	return 0;
 }
 
+int serialize_object_type(std::string &outstr, const object_type &obj) {
+	outstr += '{';
+	for (const auto &[name, fields] : obj.val) {
+		if (serialize_base_type(outstr, name) != 0)
+			return -1;
+		outstr += ':';
+		if (serialize_any_type(outstr, fields) != 0)
+			return -1;
+		outstr += ',';
+	}
+	outstr.back() = '}';
+	return 0;
 }
 
-std::optional<std::string> serializeJSON(const Pattern &pattern) {
-	const any_type &type = pattern.get_tree();
+int serialize_any_type(std::string &outstr, const any_type &val) {
+	size_t index = val.val.index();
+	if (index == 0) {
+		auto lambda = [&outstr](const auto &asdf) -> int {return serialize_base_type(outstr, asdf);};
+		return std::visit(lambda, std::get<0>(val.val));
+	}
+	else if (index == 1) {
+		return serialize_array_type(outstr, std::get<1>(val.val));
+	}
+	else {
+		return serialize_object_type(outstr, std::get<2>(val.val));
+	}
+}
+
+}
+
+std::optional<std::string> serializeJSON(const object_type &type) {
 	std::optional<std::string> out(std::string{});
-	if (serialize_complex_type(*out, type) != 0) {
+	if (serialize_object_type(*out, type) != 0) {
 		out.reset();
 	}
 	return out;

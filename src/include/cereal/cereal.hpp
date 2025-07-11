@@ -14,8 +14,6 @@
 
 namespace cereal {
 
-class Pattern;
-
 using base_type = std::variant<
 #define NUMERIC_TYPE(VAL) VAL,
 #define STRING_TYPE(VAL) VAL,
@@ -23,11 +21,9 @@ using base_type = std::variant<
 #include "types.def" // stole this little trick from Clang, it's evil and i love it
 >;
 
-using array_type = std::vector<Pattern>;
-using object_type = std::vector<std::pair<std::string, Pattern>>;
-
-using any_type = std::variant<base_type, array_type, object_type>;
-
+struct object_type;
+struct array_type;
+struct any_type;
 
 template <typename T>
 constexpr bool is_base_type() {
@@ -39,67 +35,83 @@ constexpr bool is_base_type() {
 ;
 }
 
-class Pattern;
-
 template <typename T>
-concept Serializable = is_base_type<T>() || requires (const T &t, Pattern &pat) {
-	t.serialize(pat);
+concept Serializable = is_base_type<T>() || requires (const T &t) {
+	{t.serialize()} -> std::same_as<object_type>;
 };
 
-template <typename T>
-concept HasSerializeFn = requires (const T &t, Pattern &pat) {
-	t.serialize(pat);
-};
+// Type signature for serialize for some arbitrary type T:
+//
+// object_type T::serialize() const;
+//
 
-template <typename F>
-concept Functor = requires (F &&f) {
-	f();
+template <typename T>
+concept HasSerializeFn = requires (const T &t) {
+	{t.serialize()} -> std::same_as<object_type>;
 };
 
 template <typename T>
 concept BaseType = is_base_type<T>();
 
+struct array_type {
+	array_type() = delete;
 
-class Pattern {
-	public:
-	Pattern() : data(object_type()) {}
-	template <HasSerializeFn T>
-	explicit Pattern(const T &val) : data(object_type()) {
-		val.serialize(*this);
-	}
-	template <BaseType T>
-	explicit Pattern(const T &val) : data(val) {}
+	template <Serializable T, size_t Len>
+	explicit array_type(const std::span<T, Len> &arr);
 
-	template <Serializable T>
-	Pattern(const std::string &str, const T &val) : 
-		data(object_type(std::pair(str, Pattern(val)))) {}
-	template <Serializable T, std::size_t SpanLen>
-	explicit Pattern(const std::span<T, SpanLen> &arr) : 
-		data(std::vector<Pattern>()) {
-		for (const auto &i : arr) {
-			std::get<1>(data).emplace_back(Pattern(i));
-		}
-	}
-
-	template <Serializable T>
-	void append(const std::string &str, const T &val) {
-		assert(data.index() == 2 && "Can only append to object types!");
-		std::get<2>(data).emplace_back(std::pair(str, Pattern(val)));
-	}
-
-	template <Serializable T, std::size_t SpanLen>
-	void append(const std::string &str, const std::span<T, SpanLen> &arr) {
-		assert(data.index() == 2 && "Can only append to object types!");
-		std::get<2>(data).emplace_back(std::pair(str, Pattern(arr)));
-	}
-
-
-
-	const any_type &get_tree() const { return data; }
-	private:
-	any_type data;
+	std::vector<any_type> val;
 };
 
-std::optional<std::string> serializeJSON(const Pattern &pattern);
+
+// This is the type you're actually supposed to use.
+//
+// Just default-construct one of these, and call append on it a bunch of times
+// to fill it with fields.
+//
+// So long as all the types you add are base types (integers, floats, strings,
+// bools), or types with a .serialize() method, it'll all work magically.
+struct object_type {
+	template <Serializable T>
+	void append(const std::string_view &name, const T &val);
+
+	template <Serializable T, size_t Len>
+	void append(const std::string_view &name, const std::span<T, Len> &arr);
+
+	std::vector<std::pair<std::string, any_type>> val;
+};
+
+struct any_type {
+	any_type() = delete;
+	template <BaseType T>
+	explicit any_type(const T &val) : val(base_type(val)) {}
+
+	template <HasSerializeFn T>
+	explicit any_type(const T &val) : val(val.serialize()) {}
+
+	template <Serializable T, size_t Len>
+	explicit any_type(const std::span<T, Len> &arr) : val(array_type(arr)) {}
+	std::variant<base_type, array_type, object_type> val;
+};
+
+template <Serializable T, size_t Len>
+array_type::array_type(const std::span<T, Len> &arr) {
+	val.reserve(arr.size());
+	for (const auto &elem : arr) {
+		val.push_back(any_type(elem));
+	}
+}
+
+template <Serializable T>
+void object_type::append(const std::string_view &name, const T &arg) {
+	val.push_back(std::pair<std::string, any_type>(name, any_type(arg)));
+}
+
+template <Serializable T, size_t Len>
+void object_type::append(const std::string_view &name, const std::span<T, Len> &arr) {
+	val.push_back(std::pair<std::string, any_type>(name, any_type(arr)));
+}
+
+
+std::optional<std::string> serializeJSON(const object_type &parent);
 
 }
