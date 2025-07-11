@@ -1,0 +1,29 @@
+#ifndef NUMERIC_TYPE
+#define NUMERIC_TYPE(VAL)
+#endif
+
+#ifndef STRING_TYPE
+#define STRING_TYPE(VAL)
+#endif
+
+#ifndef BOOLEAN_TYPE
+#define BOOLEAN_TYPE(VAL)
+#endif
+
+NUMERIC_TYPE(uint8_t)
+NUMERIC_TYPE(uint16_t)
+NUMERIC_TYPE(uint32_t)
+NUMERIC_TYPE(uint64_t)
+NUMERIC_TYPE(int8_t)
+NUMERIC_TYPE(int16_t)
+NUMERIC_TYPE(int32_t)
+NUMERIC_TYPE(int64_t)
+NUMERIC_TYPE(float)
+NUMERIC_TYPE(double)
+STRING_TYPE(std::string_view)
+STRING_TYPE(std::string)
+BOOLEAN_TYPE(bool)
+
+#undef NUMERIC_TYPE
+#undef STRING_TYPE
+#undef BOOLEAN_TYPE
