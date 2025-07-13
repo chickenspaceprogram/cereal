@@ -70,6 +70,10 @@ struct array_type {
 //
 // So long as all the types you add are base types (integers, floats, strings,
 // bools), or types with a .serialize() method, it'll all work magically.
+//
+// Any strings you pass this should either be statically allocated
+// (pass in string literals) or they should be valid for the entire time the
+// `object_type` exists.
 struct object_type {
 	template <Serializable T>
 	void append(const std::string_view &name, const T &val);
@@ -77,7 +81,7 @@ struct object_type {
 	template <Serializable T, size_t Len>
 	void append(const std::string_view &name, const std::span<T, Len> &arr);
 
-	std::vector<std::pair<std::string, any_type>> val;
+	std::vector<std::pair<std::string_view, any_type>> val;
 };
 
 // You can also use this type if you don't want to serialize a proper object;
@@ -94,6 +98,8 @@ struct any_type {
 	explicit any_type(const T &val) : val(val.serialize()) {}
 
 	explicit any_type(const object_type &val) : val(val) {}
+	explicit any_type(const array_type &val) : val(val) {}
+	explicit any_type(const base_type &val) : val(val) {}
 
 	template <Serializable T, size_t Len>
 	explicit any_type(const std::span<T, Len> &arr) : val(array_type(arr)) {}
@@ -112,12 +118,12 @@ array_type::array_type(const std::span<T, Len> &arr) {
 
 template <Serializable T>
 void object_type::append(const std::string_view &name, const T &arg) {
-	val.push_back(std::pair<std::string, any_type>(name, any_type(arg)));
+	val.push_back(std::pair<std::string_view, any_type>(name, any_type(arg)));
 }
 
 template <Serializable T, size_t Len>
 void object_type::append(const std::string_view &name, const std::span<T, Len> &arr) {
-	val.push_back(std::pair<std::string, any_type>(name, any_type(arr)));
+	val.push_back(std::pair<std::string_view, any_type>(name, any_type(arr)));
 }
 
 std::optional<std::string> serializeJSON(const any_type &parent);

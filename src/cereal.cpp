@@ -51,11 +51,6 @@ int serialize_base_type<std::string_view>(std::string &outstr, const std::string
 
 
 template <>
-int serialize_base_type<std::string>(std::string &outstr, const std::string &str) {
-	return serialize_base_type(outstr, std::string_view(str));
-}
-
-template <>
 int serialize_base_type<char *>(std::string &outstr, char * const&str) {
 	return serialize_base_type(outstr, std::string_view(str));
 }

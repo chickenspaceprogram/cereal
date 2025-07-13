@@ -21,7 +21,6 @@ NUMERIC_TYPE(int64_t)
 NUMERIC_TYPE(float)
 NUMERIC_TYPE(double)
 STRING_TYPE(std::string_view)
-STRING_TYPE(std::string)
 STRING_TYPE(char *)
 BOOLEAN_TYPE(bool)
 
